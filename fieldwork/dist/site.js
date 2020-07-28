@@ -30692,14 +30692,14 @@ module.exports = function fileBar(context) {
         function onImport(err, gj, warning) {
             kmlgj = geojsonNormalize(gj);
             var pilegj = kmlgj;
-            var kmPile = 'K0';
-            var kmPileCoordinates = [];
             var featuresArray = [];
-            var name;
-            var count=0;
             var geometryObj;
             var propertiesObj;
             var featureObj;
+            /*var kmPile = 'K0';
+            var kmPileCoordinates = [];
+            var name;
+            var count=0;
             startEndPile = ["K0+000","K81+740.168"];
             for (var index = 1;index < pilegj.features.length;index++){
                 name = pilegj.features[index].properties.name;
@@ -30739,10 +30739,43 @@ module.exports = function fileBar(context) {
                     featuresArray.push(featureObj);
                 }
             }
-            allObj = {'pile':featuresArray,'kml':kmlgj.features,'type':'FeatureCollection'};
+            allObj = {'pile':featuresArray,'kml':kmlgj.features,'type':'FeatureCollection'};*/
+            /*var pileName;
+            var pileCoordinates;
+            var zxIndex;
+            var finalPileName;
+            var finalPileNameArr=[];
+            var kmPile = 'K1';
+            var jump = ['point','line','祁门'];
+            for (var index = (pilegj.features.length)-1;index > 0 ;index--){
+                pileName = pilegj.features[index].properties.name;
+                if (jump.indexOf(pileName)>=0){continue;}
+                if (pileName.indexOf('K')>=0){
+                    if (pileName.indexOf('K15')>=0){
+                        kmPile = 'AK4';
+                        zxIndex =index;
+                        continue;
+                    }
+                    if(zxIndex){
+                        kmPile = 'A' + pileName;
+                    }else{
+                        kmPile = pileName;
+                    }
+                    continue;
+                }
+                finalPileName = kmPile + '+' + pileName * 100;
+                if (pileName > pilegj.features[index-1].properties.name){kmPile = 'AK12'};
+                finalPileNameArr.push(finalPileName);
+            }
+            for (var i = 0;i<finalPileNameArr.length;i++){
+                pileCoordinates = pilegj["features"][209].geometry.geometries;
+                geometryObj = {'coordinates': pileCoordinates[finalPileNameArr.length-1-i].coordinates[1], 'type': 'Point'};
+                propertiesObj = {'name': finalPileNameArr[i]};
+                featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
+                featuresArray.push(featureObj);
+            }*/
             if (kmlgj) {
-                /*context.data.mergeFeatures(kmlgj.features);*/
-                var content = context.data.mergeFeatures(featuresArray);
+                context.data.mergeFeatures(kmlgj.features);
                 if (warning) {
                     flash(context.container, warning.message);
                 } else {
