@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<!-- saved from url=(0033)http://geojson.io/#map=2/20.1/0.0 -->
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <link href='lib/mapbox.js/latest/mapbox.css' rel='stylesheet' />
+    <link rel='stylesheet' href='css/font-awesome/css/font-awesome.min.css'>
+    <link rel='stylesheet' href='css/fonts/mplus.css'>
+    <title>geojson.io</title>
+    <link href='lib/draw/leaflet.draw.css' rel='stylesheet' />
+    <link href='lib/codemirror/lib/codemirror.css' rel='stylesheet' />
+    <link href='css/base.css' rel='stylesheet' />
+    <link href='css/marker.css' rel='stylesheet' />
+    <link href='css/github_browse.css' rel='stylesheet' />
+    <link href='css/site.css' rel='stylesheet' />
+    <link href='css/theme.css' rel='stylesheet' />
+    <link rel='icon' type='image/x-icon' href='/img/favicon.png' />
+    <meta name='author' content='MapBox' />
+    <meta name='description' content='simply edit geojson map data' />
+    <meta property='og:site_name' content='geojson.io'/>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1'>
+    <!--[if lt IE 9]>
+    <script type='text/javascript' src='lib/aight.min.js'></script>
+    <![endif]-->
+    <script src='lib/mapbox.js/latest/mapbox.js'></script>
+    <script src='lib/raven.min.js'></script>
+    <meta http-equiv="Content-Security-Policy" content="
+    default-src
+      &#39;self&#39;
+      ;
+    child-src
+      &#39;self&#39;
+      blob:
+      ;
+    connect-src
+      &#39;self&#39;
+      *
+      ;
+    font-src
+      &#39;self&#39;
+      ;
+    frame-src
+      &#39;self&#39;
+      ;
+    img-src
+      &#39;self&#39;
+      data:
+      *
+      ;
+    script-src
+      &#39;self&#39;
+      &#39;unsafe-eval&#39;
+      &#39;unsafe-inline&#39;
+      https://cdn.segment.com
+      https://assets.customer.io
+      https://secure.gaug.es
+      https://www.google-analytics.com
+      ;
+    style-src
+      &#39;self&#39;
+      &#39;unsafe-inline&#39;
+      ;
+  ">
+    <script>
+        if (/a\.tiles\.mapbox\.com/.test(L.mapbox.config.HTTP_URL)) {
+            Raven.config('https://c2d096c944dd4150ab7e44b0881b4a46@app.getsentry.com/11480', {
+                whitelistUrls: [/geojson\.io/],
+                ignoreErrors: [
+                    'Uncaught Error: Error connecting to extension ckibcdccnfeookdmbahgiakhnjcddpki',
+                    'Uncaught Error: Error connecting to extension pioclpoplcdbaefihamjohnefbikjilc'
+                ]
+            }).install();
+        }
+    </script>
+    <style>
+        /*
+         * http://seclab.stanford.edu/websec/framebusting/framebust.pdf
+         */
+        body {
+            display: none;
+        }
+    </style>
+</head>
+<body id="geojsonio-body">
+
+<div class="geojsonio">
+
+</div>
+
+<script>
+    if (self == top) {
+        document.getElementsByTagName("body")[0].style.display = 'block';
+    } else {
+        top.location = self.location;
+    }
+</script>
+<script src="dist/delegate.js"></script>
+<script src="dist/lib.js"></script>
+<script src="dist/site.js"></script>
+
+
+</body>
+</html>
