@@ -30269,8 +30269,11 @@ module.exports = function fileBar(context) {
         title: 'WKT',
         action: downloadWKT
     },{
-        title: 'Pile_KML',
+        title: 'singleKml2Geojson',
         action: downloadPile_KML
+    },{
+        title: 'zhixKml2Geojson',
+        action: downloadzhixKML
     }];
 
     if (shpSupport) {
@@ -30691,11 +30694,11 @@ module.exports = function fileBar(context) {
         }
         function onImport(err, gj, warning) {
             kmlgj = geojsonNormalize(gj);
-            var pilegj = kmlgj;
+            /*pilegj = kmlgj;
             var featuresArray = [];
             var geometryObj;
             var propertiesObj;
-            var featureObj;
+            var featureObj;*/
             /*var kmPile = 'K0';
             var kmPileCoordinates = [];
             var name;
@@ -30795,6 +30798,11 @@ module.exports = function fileBar(context) {
                 .on('⌘+s', saveAction));
     }
     var allObj;
+    var featuresArray = [];
+    var geometryObj;
+    var propertiesObj;
+    var featureObj;
+    var pilegj;
     function downloadTopo() {
         var content = JSON.stringify(topojson.topology({
             collection: clone(context.data.get('map'))
@@ -30855,11 +30863,105 @@ module.exports = function fileBar(context) {
     }
     function downloadPile_KML() {
         if (d3.event) d3.event.preventDefault();
+
+        pilegj = kmlgj;
+        var kmPile = 'K0';
+        var kmPileCoordinates = [];
+        var name;
+        var count=0;
+        startEndPile = ["K0+000","K81+740.168"];
+        for (var index = 1;index < pilegj.features.length;index++){
+            name = pilegj.features[index].properties.name;
+            if (name && startEndPile.indexOf(name)>=0){
+                geometryObj = {'coordinates': pilegj.features[index-1].geometry.coordinates[0], 'type': 'Point'};
+                propertiesObj = {'name': name};
+                featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
+                featuresArray.push(featureObj);
+            }
+            if(pilegj.features[index].geometry.type == 'GeometryCollection'){
+                kmPileCoordinates.push(pilegj.features[index].geometry.geometries[2].coordinates[1]);
+            }else{
+                continue;
+            }
+        }
+        var tempName;
+        var coordinates;
+        for (var index = 154; index < pilegj.features.length; index++) {
+            if (pilegj.features[index].geometry.type !== 'GeometryCollection') {
+                tempName = pilegj.features[index + 1].properties.name;
+                coordinates = pilegj.features[index].geometry.coordinates[0];
+                if (tempName.toString() !== '9') {
+                    index++;
+                }
+                if (tempName && tempName.toString().indexOf('K') >= 0) {
+                    kmPile = tempName;
+                    name = kmPile + '+000';
+                     geometryObj = {'coordinates': kmPileCoordinates[count], 'type': 'Point'};
+                     propertiesObj = {'name': name};
+                     featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
+                    count++;
+                } else {
+                    name = kmPile + '+' + tempName * 100;
+                     geometryObj = {'coordinates': coordinates, 'type': 'Point'};
+                     propertiesObj = {'name': name};
+                     featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
+                }
+                featuresArray.push(featureObj);
+            }
+        }
+        allObj = {'pile':featuresArray,'kml':kmlgj.features,'type':'FeatureCollection'};
+
         var content = JSON.stringify(allObj);
         var meta = context.data.get('meta');
         saveAs(new Blob([content], {
             type: 'text/plain;charset=utf-8'
-        }), (meta && meta.name) || 'kml2geoJsonAll.json');
+        }), (meta && meta.name) || 'singleKml.json');
+    }
+
+    function downloadzhixKML() {
+        if (d3.event) d3.event.preventDefault();
+        pilegj = kmlgj;
+        var pileName;
+        var pileCoordinates;
+        var zxIndex;
+        var finalPileName;
+        var finalPileNameArr=[];
+        var kmPile = 'K1';
+        var jump = ['point','line','祁门'];
+        for (var index = (pilegj.features.length)-1;index > 0 ;index--){
+            pileName = pilegj.features[index].properties.name;
+            if (jump.indexOf(pileName)>=0){continue;}
+            if (pileName && pileName.toString().indexOf('K')>=0){
+                if (pileName.indexOf('K15')>=0){
+                    kmPile = 'AK4';
+                    zxIndex =index;
+                    continue;
+                }
+                if(zxIndex){
+                    kmPile = 'A' + pileName;
+                }else{
+                    kmPile = pileName;
+                }
+                continue;
+            }
+            finalPileName = kmPile + '+' + pileName * 100;
+            if (pileName > pilegj.features[index-1].properties.name){kmPile = 'AK12'};
+            finalPileNameArr.push(finalPileName);
+        }
+        for (var i = 0;i<finalPileNameArr.length;i++){
+            pileCoordinates = pilegj["features"][209].geometry.geometries;
+            geometryObj = {'coordinates': pileCoordinates[finalPileNameArr.length-1-i].coordinates[1], 'type': 'Point'};
+            propertiesObj = {'name': finalPileNameArr[i]};
+            featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
+            featuresArray.push(featureObj);
+        }
+        allObj = {'pile':featuresArray,'kml':kmlgj.features,'type':'FeatureCollection'};
+
+        var content = JSON.stringify(allObj);
+        var meta = context.data.get('meta');
+        saveAs(new Blob([content], {
+            type: 'text/plain;charset=utf-8'
+        }), (meta && meta.name) || 'zhixKml.json');
     }
 
     function allProperties(properties, key, value) {
