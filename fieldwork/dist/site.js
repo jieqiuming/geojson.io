@@ -30865,48 +30865,67 @@ module.exports = function fileBar(context) {
         if (d3.event) d3.event.preventDefault();
 
         pilegj = kmlgj;
-        var kmPile = 'K0';
+        var neededPile = ["1","2","3","4","5","6","7","8","9"];
         var kmPileCoordinates = [];
-        var name;
+        var initialKmPile;
+        var pileName;
+        var initialKmPileArr=[];
         var count=0;
-        startEndPile = ["K0+000","K81+740.168"];
-        for (var index = 1;index < pilegj.features.length;index++){
-            name = pilegj.features[index].properties.name;
-            if (name && startEndPile.indexOf(name)>=0){
-                geometryObj = {'coordinates': pilegj.features[index-1].geometry.coordinates[0], 'type': 'Point'};
-                propertiesObj = {'name': name};
-                featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
-                featuresArray.push(featureObj);
-            }
-            if(pilegj.features[index].geometry.type == 'GeometryCollection'){
-                kmPileCoordinates.push(pilegj.features[index].geometry.geometries[2].coordinates[1]);
-            }else{
-                continue;
+        var featuresArray=[];
+        /*获取初始桩号*/
+        for (var index = 0;index < pilegj.features.length;index++){
+            pileName = pilegj.features[index].properties.name;
+            if (pileName){initialKmPileArr.push(pileName);}
+            if (pileName && pileName.toString().indexOf('K')>=0){
+                break;
             }
         }
-        var tempName;
-        var coordinates;
-        for (var index = 154; index < pilegj.features.length; index++) {
-            if (pilegj.features[index].geometry.type !== 'GeometryCollection') {
-                tempName = pilegj.features[index + 1].properties.name;
-                coordinates = pilegj.features[index].geometry.coordinates[0];
-                if (tempName.toString() !== '9') {
-                    index++;
+        if (initialKmPileArr.length == 1){
+            initialKmPile = pileName;
+        }else {
+            initialKmPile = pileName.replace("K","") - 1;
+            if(initialKmPile.toString().indexOf('-')>=0){
+                initialKmPile = "-K" + initialKmPile.toString().replace("-","")
+            }else{
+                initialKmPile = "K" + initialKmPile;
+            }
+        }
+        if(initialKmPile.toString().indexOf('+')>=0){
+            var jiaLoc = initialKmPile.toString().indexOf('+');
+            initialKmPile = initialKmPile.slice(0,jiaLoc);
+        }
+        /*获取公里桩的坐标*/
+        for (var index = 0;index < pilegj.features.length;index++){
+            if(pilegj.features[index].geometry.type == 'GeometryCollection'){
+                kmPileCoordinates.push(pilegj.features[index].geometry.geometries[2].coordinates[1]);
+            }
+        }
+        /*遍历所有的features*/
+        for (var index = 0;index < pilegj.features.length;index++){
+            pileName = pilegj.features[index].properties.name;
+            if(pileName){
+                if(neededPile.indexOf(pileName.toString())>=0){
+                    geometryObj = {'coordinates': pilegj.features[index-1].geometry.coordinates[0], 'type': 'Point'};
+                    propertiesObj = {'name': initialKmPile + '+' + pileName*100};
+                    featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
+                    featuresArray.push(featureObj);
                 }
-                if (tempName && tempName.toString().indexOf('K') >= 0) {
-                    kmPile = tempName;
-                    name = kmPile + '+000';
-                     geometryObj = {'coordinates': kmPileCoordinates[count], 'type': 'Point'};
-                     propertiesObj = {'name': name};
-                     featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
+                if (pileName.toString().indexOf('K')>=0){
+                    //针对头尾有具体公里桩+百米桩这种形式要单独处理
+                    if(pileName.toString()==="K0+000" || pileName.toString()==="K81+740.168")
+                    {
+                        geometryObj = {'coordinates': pilegj.features[index-1].geometry.coordinates[0], 'type': 'Point'};
+                        propertiesObj = {'name': pileName};
+                    }else{
+                        initialKmPile =  pileName;
+                        pileName = initialKmPile + '+000';
+                        geometryObj = {'coordinates': kmPileCoordinates[count], 'type': 'Point'};
+                        propertiesObj = {'name': pileName};
+                    }
+                    featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
                     count++;
-                } else {
-                    name = kmPile + '+' + tempName * 100;
-                     geometryObj = {'coordinates': coordinates, 'type': 'Point'};
-                     propertiesObj = {'name': name};
-                     featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
+                    featuresArray.push(featureObj);
                 }
-                featuresArray.push(featureObj);
             }
         }
         allObj = {'pile':featuresArray,'kml':kmlgj.features,'type':'FeatureCollection'};
