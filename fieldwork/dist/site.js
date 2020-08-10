@@ -5411,6 +5411,18 @@ function metatable() {
                 colbutton.append('span').attr('class', 'icon-plus');
                 colbutton.append('span').text(' new column');
 
+                //增加解析数据的按钮
+                var databutton = controls.append('button').attr('style', 'margin-left: 10px;')
+                    .on('click', function () {
+                        var name = prompt('column name');
+                        if (name) {
+                            keyset.add(name);
+                            paint();
+                        }
+                    });
+                databutton.append('span').attr('class', 'icon-plus');
+                databutton.append('span').text(' read piles');
+
                 var enter = sel.selectAll('table').data([d]).enter().append('table');
                 var thead = enter.append('thead');
                 var tbody = enter.append('tbody');
