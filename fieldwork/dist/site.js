@@ -5380,16 +5380,15 @@ function metatable() {
     function table(selection) {
         selection.each(function(d) {
             var sel = d3.select(this),
-                table,
-            that = this;
-
+                table
             var keyset = d3.set();
             d.map(Object.keys).forEach(function(k) {
                 k.forEach(function(_) {
                     keyset.add(_);
                 });
             });
-
+            keyset.remove("styleUrl");
+            keyset.remove("styleHash");
             bootstrap();
             paint();
 
@@ -5415,19 +5414,17 @@ function metatable() {
                 //增加解析数据的按钮
                 var singleButton = controls.append('button').attr('style', 'margin-left: 10px;')
                     .on('click', function () {
+
                         var inputData = window.single();
-                        var geojsonFormat = {"features": inputData,'type': 'FeatureCollection'};
+                        var geojsonFormat = {"features": inputData,"type": "FeatureCollection"};
                         window.import(null, geojsonFormat, null);
-                        /*var feaObj;
-                        var newd=[];
+                        /*table.remove();
+                        var feaObj;
+                        d.splice(0,d.length);
                         for (var i=0;i<inputData.length;i++){
                             feaObj={'name': inputData[i].properties.name,'lon':inputData[i].geometry.coordinates[0],'lat':inputData[i].geometry.coordinates[1]};
-                            newd.push(feaObj);
+                            d.push(feaObj);
                         }
-                        console.log(JSON.stringify(newd))
-                        table.remove();
-                        d.splice(0,d.length);
-                        d.concat(newd);
                         keyset = d3.set();
                         d.map(Object.keys).forEach(function (k) {
                             k.forEach(function (_) {
@@ -5440,19 +5437,19 @@ function metatable() {
                         var tr = thead.append('tr');
                         table = sel.select('table');
                         paint();*/
+
                     });
                 singleButton.append('span').attr('class', 'icon-plus');
                 singleButton.append('span').text(' read singleKml');
-                var zhixButton = controls.append('button').attr('style', 'margin-left: 20px;')
+                /*var zhixButton = controls.append('button').attr('style', 'margin-left: 20px;')
                     .on('click', function () {
-                        var name = prompt('column name');
-                        if (name) {
-                            keyset.add(name);
-                            paint();
-                        }
+                        var inputData = window.zhix();
+                        var geojsonFormat = {"features": inputData,"type": "FeatureCollection"};
+                        window.import(null, geojsonFormat, null);
+
                     });
                 zhixButton.append('span').attr('class', 'icon-plus');
-                zhixButton.append('span').text(' read zhixKml');
+                zhixButton.append('span').text(' read zhixKml');*/
 
                 var enter = sel.selectAll('table').data([d]).enter().append('table');
                 var thead = enter.append('thead');
@@ -5460,6 +5457,7 @@ function metatable() {
                 var tr = thead.append('tr');
 
                 table = sel.select('table');
+
             }
 
             function paint() {
@@ -28668,7 +28666,8 @@ module.exports = function(context) {
             else return x;
         }
 
-        _data.map.features = (_data.map.features || []).concat(features.map(coerceNum));
+       /* _data.map.features = (_data.map.features || []).concat(features.map(coerceNum));*/
+        _data.map.features = (features.map(coerceNum)).concat(_data.map.features || []);
         return data.set({ map: _data.map }, src);
     };
 
@@ -30970,7 +30969,8 @@ module.exports = function fileBar(context) {
         for (var i = 0; i < finalPileNameArr.length; i++) {
             if (finalPileNameArr[i].indexOf('000') <= 5 && finalPileNameArr[i].indexOf('000') >= 3) {
                 count++;
-                geometryObj = {'coordinates': '', 'type': 'Point'};
+                continue;
+                /*geometryObj = {'coordinates': '', 'type': 'Point'};*/
             } else {
                 geometryObj = {'coordinates': pileCoordinates[i - count].coordinates[1], 'type': 'Point'};
             }
@@ -30984,9 +30984,9 @@ module.exports = function fileBar(context) {
     function downloadPile_KML() {
         if (d3.event) d3.event.preventDefault();
         featuresArray = window.single();
-        var geojsonFormat = {"features": featuresArray,'type': 'FeatureCollection'};
-        allObj = {'pile': geojsonFormat, 'kml': kmlgj.features, 'type': 'FeatureCollection'};
-        var content = JSON.stringify(geojsonFormat);
+        var geojsonFormat = {"features": featuresArray,"type": "FeatureCollection"};
+        allObj = {'pile': geojsonFormat, 'kml': kmlgj.features, "type": "FeatureCollection"};
+        var content = JSON.stringify(allObj);
         var meta = context.data.get('meta');
         saveAs(new Blob([content], {
             type: 'text/plain;charset=utf-8'
@@ -30996,8 +30996,8 @@ module.exports = function fileBar(context) {
     function downloadzhixKML() {
         if (d3.event) d3.event.preventDefault();
         featuresArray = window.zhix();
-        var geojsonFormat = {"features":featuresArray};
-        allObj = {'pile':geojsonFormat,'kml':kmlgj.features,'type':'FeatureCollection'};
+        var geojsonFormat = {"features":featuresArray,"type": "FeatureCollection"};
+        allObj = {'pile':geojsonFormat,'kml':kmlgj.features,"type": "FeatureCollection"};
         var content = JSON.stringify(allObj);
         var meta = context.data.get('meta');
         saveAs(new Blob([content], {
