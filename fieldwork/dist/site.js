@@ -29689,7 +29689,7 @@ module.exports = function(context) {
 var marked = require('marked');
 
 module.exports = function(context) {
-    var html = "<h2>说明</h2><p><strong>外业桩号数据生成工具</strong>主要用于生成外业调查app需要使用的百里桩桩号数据，有了这些数据外业调查app能够根据点击的位置自动计算桩号。</p><p>具体操作步骤如下：</p><h3>1.中心线数据准备</h3><p>按照设计师使用习惯，中线数据一开始是dwg格式，记录路线走向和建筑物信息，主要包括如下图层：</p><ul><li><strong>zhix</strong>:中心线</li><li><strong>station</strong>:百里桩数据必须要在该图层</li><li><strong>LJBX</strong>:路基边线</li><li><strong>XW</strong>:线位</li><li><strong>GZW</strong>:构造物</li></ul><h3>2.生成kml数据</h3><p>将dwg转换成dxf，再导入91卫图软件中，设置相应的转换参数，最后导出kml数据。</p><h3>3.导入kml数据</h3><p>在本网站点击导入，选择kml数据，网站自动解析并加载kml数据。kml数据中包含的桩号信息可能会有两类：</p><ul><li><strong>单轴线：</strong>仅包含K开头的桩号</li><li><strong>多轴线：</strong>除了K开头的桩号外，还包括ZK或者AK等其他前缀桩号，常见于带高速互通和左线桩号的数据</li></ul><h3>4.生成桩号数据</h3><p>点击网站右侧Table按钮，切换至显示数据界面，根据传入的kml数据分类（单轴线或者多轴线），分别点击相应的按钮，网站会自动解析并展示在地图上。</p><p>数据表中会展示已经生成好的桩号列表，点击桩号即可定位到相应的桩号</p><h3>5.导出桩号数据</h3><p>点击左上角的保存菜单项，根据单轴线或者多轴线类型点击相应的下载按钮即可导出桩号数据文件</p>";
+    var html = "<h2>说明</h2><p><strong>外业桩号数据生成工具</strong>主要用于生成外业调查app需要使用的百里桩桩号数据，有了这些数据外业调查app能够根据点击的位置自动计算桩号。</p><p>具体操作步骤如下：</p><h3>1.中心线数据准备</h3><p>按照设计师使用习惯，中线数据一开始是dwg格式，记录路线走向和建筑物信息，主要包括如下图层：</p><ul><li><strong>zhix</strong>:中心线</li><li><strong>station</strong>:百里桩数据必须要在该图层</li><li><strong>LJBX</strong>:路基边线</li><li><strong>XW</strong>:线位</li><li><strong>GZW</strong>:构造物</li></ul><h3>2.生成kml数据</h3><p>将dwg转换成dxf，再导入91卫图软件中，设置相应的转换参数，最后导出kml数据。</p><h3>3.导入kml数据</h3><p>在本网站左上角点击<strong>导入</strong>，选择kml数据，网站自动解析并加载kml数据。kml数据中包含的桩号信息可能会有两类：</p><ul><li><strong>单轴线：</strong>仅包含K开头的桩号</li><li><strong>多轴线：</strong>除了K开头的桩号外，还包括ZK或者AK等其他前缀桩号，常见于带高速互通和左线桩号的数据</li></ul><h3>4.生成桩号数据</h3><p>点击网站右上角<strong>数据</strong>按钮，切换至显示数据界面，根据传入的kml数据分类（单轴线或者多轴线），分别点击相应的按钮，网站会自动解析并展示在地图上。</p><p>数据表中会展示已经生成好的桩号列表，点击桩号即可定位到相应的桩号</p><h3>5.导出桩号数据</h3><p>点击左上角的保存菜单项，根据单轴线或者多轴线类型点击相应的下载按钮即可导出桩号数据文件</p>";
     function render(selection) {
         var area = selection
             .html('')
@@ -31600,21 +31600,23 @@ module.exports = function(context, pane) {
         var mode = null;
 
         var buttonData = [
-		{
-            icon: 'table',
-            title: ' 数据',
-            alt: 'Edit feature properties in a table',
-            behavior: table
-        },{
+            {
+                icon: 'question',
+                title: ' 说明',
+                alt: 'Help',
+                behavior: help
+            },
+            {
+                icon: 'table',
+                title: ' 数据',
+                alt: 'Edit feature properties in a table',
+                behavior: table
+            },
+            {
             icon: 'code',
             title: ' JSON',
             alt: 'JSON Source',
             behavior: json
-        },{
-            icon: 'question',
-            title: ' 说明',
-            alt: 'Help',
-            behavior: help
         }];
 
         var buttons = selection
