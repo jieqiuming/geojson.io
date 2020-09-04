@@ -1181,9 +1181,8 @@ function d3_mousePoint(container, e) {
   }
   var rect = container.getBoundingClientRect();
   return [e.clientX - rect.left - container.clientLeft, e.clientY - rect.top - container.clientTop];
-};
-
-d3.touches = function(container, touches) {
+}
+    d3.touches = function(container, touches) {
   if (arguments.length < 2) touches = d3_eventSource().touches;
   return touches ? d3_array(touches).map(function(touch) {
     var point = d3_mousePoint(container, touch);
@@ -2234,9 +2233,8 @@ function d3_transform(m) {
   this.translate = [m.e, m.f];
   this.scale = [kx, ky];
   this.skew = ky ? Math.atan2(kz, ky) * d3_degrees : 0;
-};
-
-d3_transform.prototype.toString = function() {
+}
+    d3_transform.prototype.toString = function() {
   return "translate(" + this.translate
       + ")rotate(" + this.rotate
       + ")skewX(" + this.skew
@@ -2698,9 +2696,8 @@ function d3_xhr(url, mimeType, response, callback) {
   d3.rebind(xhr, dispatch, "on");
 
   return callback == null ? xhr : xhr.get(d3_xhr_fixCallback(callback));
-};
-
-function d3_xhr_fixCallback(callback) {
+}
+    function d3_xhr_fixCallback(callback) {
   return callback.length === 1
       ? function(error, request) { callback(error == null ? request : null); }
       : callback;
@@ -14707,8 +14704,12 @@ window.CodeMirror = (function() {
       delayedCallbacks = [];
       setTimeout(fireDelayed, 0);
     }
-    function bnd(f) {return function(){f.apply(null, args);};};
-    for (var i = 0; i < arr.length; ++i)
+      function bnd(f) {
+          return function () {
+              f.apply(null, args);
+          };
+      }
+      for (var i = 0; i < arr.length; ++i)
       delayedCallbacks.push(bnd(arr[i]));
   }
 

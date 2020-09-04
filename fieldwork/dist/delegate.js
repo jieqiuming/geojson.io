@@ -6,8 +6,8 @@
   */
 
 !function (name, definition) {
-  if (typeof define == 'function') define(definition)
-  else if (typeof module != 'undefined' && module.exports) module.exports['browser'] = definition()
+  if (typeof define == 'function') define(definition);
+  else if (typeof module != 'undefined' && module.exports) module.exports['browser'] = definition();
   else this[name] = definition()
 }('bowser', function () {
   /**
@@ -41,33 +41,33 @@
     , seamonkey = /seamonkey\//i.test(ua)
     , webkitVersion = /version\/(\d+(\.\d+)?)/i
     , firefoxVersion = /firefox\/(\d+(\.\d+)?)/i
-    , o
+    , o;
 
   function detect() {
 
     if (ie) return {
         msie: t
       , version: ua.match(/(msie |rv:)(\d+(\.\d+)?)/i)[2]
-      }
+      };
     if (opera) return {
         opera: t
       , version: ua.match(webkitVersion) ? ua.match(webkitVersion)[1] : ua.match(/opr\/(\d+(\.\d+)?)/i)[1]
-      }
+      };
     if (chrome) return {
         webkit: t
       , chrome: t
       , version: ua.match(/chrome\/(\d+(\.\d+)?)/i)[1]
-      }
+      };
     if (phantom) return {
         webkit: t
       , phantom: t
       , version: ua.match(/phantomjs\/(\d+(\.\d+)+)/i)[1]
-      }
+      };
     if (touchpad) return {
         webkit: t
       , touchpad: t
       , version : ua.match(/touchpad\/(\d+(\.\d+)?)/i)[1]
-      }
+      };
     if (iphone || ipad) {
       o = {
         webkit: t
@@ -75,7 +75,7 @@
       , ios: t
       , iphone: iphone
       , ipad: ipad
-      }
+      };
       // WTF: version is not part of user agent in web apps
       if (webkitVersion.test(ua)) {
         o.version = ua.match(webkitVersion)[1]
@@ -87,29 +87,29 @@
       , android: t
       , mobile: t
       , version: (ua.match(webkitVersion) || ua.match(firefoxVersion))[1]
-      }
+      };
     if (safari) return {
         webkit: t
       , safari: t
       , version: ua.match(webkitVersion)[1]
-      }
+      };
     if (gecko) {
       o = {
         gecko: t
       , mozilla: t
       , version: ua.match(firefoxVersion)[1]
-      }
-      if (firefox) o.firefox = t
+      };
+      if (firefox) o.firefox = t;
       return o
     }
     if (seamonkey) return {
         seamonkey: t
       , version: ua.match(/seamonkey\/(\d+(\.\d+)?)/i)[1]
-      }
+      };
     return {}
   }
 
-  var bowser = detect()
+  var bowser = detect();
 
   // Graded Browser Support
   // http://developer.yahoo.com/yui/articles/gbs
@@ -127,7 +127,7 @@
       (bowser.safari && bowser.version < 5) ||
       (bowser.opera && bowser.version < 10.0)) {
     bowser.c = t
-  } else bowser.x = t
+  } else bowser.x = t;
 
   return bowser
 })
