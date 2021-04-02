@@ -30728,6 +30728,8 @@ module.exports = function fileBar(context) {
         }
         window.import = function onImport(err, gj, warning) {
             kmlgj = geojsonNormalize(gj);
+            featureCollection.push(kmlgj);
+
             if (kmlgj) {
                 context.data.mergeFeatures(kmlgj.features);
                 if (warning) {
@@ -30755,6 +30757,9 @@ module.exports = function fileBar(context) {
     var featureObj;
     var pilegj;
     var oriData;
+    var featureCollection=[];
+    var returnFeatureArr=[];
+    var exportResult;
     function downloadTopo() {
         var content = JSON.stringify(topojson.topology({
             collection: clone(context.data.get('map'))
@@ -30814,91 +30819,121 @@ module.exports = function fileBar(context) {
         }), 'map.wkt');
     }
 
+
     window.single = function readSingleKml() {
-        if (typeof (pilegj) === "undefined"){pilegj = kmlgj;}
-        var neededPile = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-        var kmPileCoordinates = [];
-        var initialKmPile;
-        var mPileName;
-        var initialKmPileArr = [];
-        var count = 0;
-        var featuresArray = [];
-        /*获取初始桩号*/
-        for (var index = 0; index < pilegj.features.length; index++) {
-            mPileName = pilegj.features[index].properties.name;
-            if (mPileName) {
-                initialKmPileArr.push(mPileName);
+
+        for (var i = 0;i < featureCollection.length;i++){
+            //if (typeof (pilegj) === "undefined"){pilegj = featureCollection[i];}
+            pilegj = featureCollection[i];
+            var neededPile = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+            var kmPileCoordinates = [];
+            var mPileCoordinates = [];
+            var initialKmPile;
+            var mPileName;
+            var initialKmPileArr = [];
+            var count = 0;
+            var countM = 0;
+            var featuresArray = [];
+            /*获取初始桩号*/
+            for (var index = 0; index < pilegj.features.length; index++) {
+                mPileName = pilegj.features[index].properties.name;
+                if (mPileName) {
+                    initialKmPileArr.push(mPileName);
+                }
+                if (mPileName && mPileName.toString().indexOf('K') >= 0) {
+                    break;
+                }
             }
-            if (mPileName && mPileName.toString().indexOf('K') >= 0) {
-                break;
-            }
-        }
-        if (initialKmPileArr.length == 1) {
-            initialKmPile = mPileName;
-        } else {
-            initialKmPile = initialKmPileArr[initialKmPileArr.length - 1];
-            initialKmPile = mPileName.replace("K", "") - 1;
-            if (initialKmPile.toString().indexOf('-') >= 0) {
-                initialKmPile = "-K" + initialKmPile.toString().replace("-", "")
+            if (initialKmPileArr.length == 1) {
+                initialKmPile = mPileName;
             } else {
-                initialKmPile = "K" + initialKmPile;
+                initialKmPile = initialKmPileArr[initialKmPileArr.length - 1];
+                initialKmPile = mPileName.replace("K", "") - 1;//xiugai
+                if (initialKmPile.toString().indexOf('-') >= 0) {
+                    initialKmPile = "-K" + initialKmPile.toString().replace("-", "")
+                } else {
+                    initialKmPile = "K" + initialKmPile;
+                }
             }
-        }
-        if (initialKmPile.toString().indexOf('+') >= 0) {
-            var jiaLoc = initialKmPile.toString().indexOf('+');
-            initialKmPile = initialKmPile.slice(0, jiaLoc);
-        }
-        /*获取公里桩的坐标*/
-        for (var index = 0; index < pilegj.features.length; index++) {
-            if (pilegj.features[index].geometry.type == 'GeometryCollection') {
-                kmPileCoordinates.push(pilegj.features[index].geometry.geometries[2].coordinates[1]);
+            if (initialKmPile.toString().indexOf('+') >= 0) {
+                var jiaLoc = initialKmPile.toString().indexOf('+');
+                initialKmPile = initialKmPile.slice(0, jiaLoc);
             }
-        }
-        /*遍历所有的features*/
-        var isJumpPile;
-        var JumpKmPileIndex;
-        for (var index = 0; index < pilegj.features.length; index++) {
-            mPileName = pilegj.features[index].properties.name;
-            if (mPileName) {
-                if (neededPile.indexOf(mPileName.toString()) >= 0) {
-                    if (index > 2) {//单线可能不连续，核心思想是判断当前百米桩与上一个百米桩是否相差1，如果不是则认为是不连续。
-                        isJumpPile = pilegj.features[index - 2].properties.name;
-                        if ((mPileName - isJumpPile) !== 1 && mPileName !== 1) {
-                            JumpKmPileIndex = (10 - mPileName) * 2 - 1;
-                            initialKmPile = pilegj.features[index + JumpKmPileIndex].properties.name;
-                            initialKmPile = initialKmPile.replace("K", "") - 1;
-                            initialKmPile = 'K' + initialKmPile;
+            /*获取公里桩的坐标*/
+            var flag;
+            for (var index = 0; index < pilegj.features.length; index++) {
+                mPileName = pilegj.features[index].properties.name;
+                if (pilegj.features[index].geometry.type == 'GeometryCollection') {
+                    kmPileCoordinates.push(pilegj.features[index].geometry.geometries[2].coordinates[1]);
+                }else if(pilegj.features[index].geometry.type == 'Polygon' && pilegj.features[index].properties.name == 'SOLID'){
+                    kmPileCoordinates.push(pilegj.features[index-3].geometry.coordinates[1]);
+                    flag=1;
+                }else if(pilegj.features[index].geometry.type == 'LineString' && pilegj.features[index].geometry.coordinates.length == 2){
+                    //mPileCoordinates.push(pilegj.features[index].geometry.coordinates[0]);
+                }
+            }
+            /*if(flag==1){
+                kmPileCoordinates.reverse();
+            }*/
+            mPileCoordinates.reverse();
+            /*遍历所有的features*/
+            var isJumpPile;
+            var JumpKmPileIndex;
+            var mflag = 0;
+            for (var index = 0; index < pilegj.features.length; index++) {
+                mPileName = pilegj.features[index].properties.name;
+                if (mPileName) {
+                    if (neededPile.indexOf(mPileName.toString()) >= 0) {
+                        /*if (index > 2) {//单线可能不连续，核心思想是判断当前百米桩与上一个百米桩是否相差1，如果不是则认为是不连续。
+                            isJumpPile = pilegj.features[index - 2].properties.name;
+                            if (Math.abs(mPileName - isJumpPile) !== 1 && mPileName !== 1 && isJumpPile.indexOf("K")<0 && typeof(isJumpPile) != undefined) {
+                                JumpKmPileIndex = (10 - mPileName) * 2 - 1;
+                                initialKmPile = pilegj.features[index + JumpKmPileIndex].properties.name;
+                                initialKmPile = initialKmPile.replace("K", "") - 1;
+                                initialKmPile = 'K' + initialKmPile;
+                            }
+                        }*/
+                        if (mPileCoordinates.length == 0 && index > 0) {
+                            geometryObj = {
+                                'coordinates': pilegj.features[index - 1].geometry.coordinates[0],
+                                /*'coordinates': pilegj.features[index - 1].geometry.coordinates,*/
+                                'type': 'Point'
+                            };
+                            propertiesObj = {'name': initialKmPile + '+' + mPileName * 100, 'flag': 1};
+                            featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
+                            featuresArray.push(featureObj);
+                        } else {
+                            geometryObj = {'coordinates': mPileCoordinates[countM], 'type': 'Point'};
+                            propertiesObj = {'name': initialKmPile + '+' + mPileName * 100, 'flag': 1};
+                            featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
+                            countM++;
+                            featuresArray.push(featureObj);
                         }
                     }
-                    geometryObj = {
-                        'coordinates': pilegj.features[index - 1].geometry.coordinates[0],
-                        'type': 'Point'
-                    };
-                    propertiesObj = {'name': initialKmPile + '+' + mPileName * 100,'flag':1};
-                    featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
-                    featuresArray.push(featureObj);
-                }
-                if (mPileName.toString().indexOf('K') >= 0) {
-                    //针对头尾有具体"公里桩+百米桩"这种形式要单独处理
-                    if (mPileName.toString() === "K0+000" || mPileName.toString() === "K81+740.168") {
-                        geometryObj = {
-                            'coordinates': pilegj.features[index - 1].geometry.coordinates[0],
-                            'type': 'Point'
-                        };
-                        propertiesObj = {'name': mPileName,'flag':1};
-                    } else {
-                        initialKmPile = mPileName;
-                        mPileName = initialKmPile + '+000';
-                        geometryObj = {'coordinates': kmPileCoordinates[count], 'type': 'Point'};
-                        propertiesObj = {'name': mPileName,'flag':1};
-                        count++;
+                    if (mPileName.toString().indexOf('K') >= 0 && (mPileName.toString().indexOf('+') < 0)) {
+                        //针对头尾有具体"公里桩+百米桩"这种形式要单独处理
+                        /*if (mPileName.toString() === "K0+000" || mPileName.toString() === "K81+740.168") {
+                            geometryObj = {
+                                'coordinates': pilegj.features[index - 1].geometry.coordinates[0],
+                                'type': 'Point'
+                            };
+                            propertiesObj = {'name': mPileName,'flag':1};
+                        } else {*/
+                            initialKmPile = mPileName;
+                            mPileName = initialKmPile + '+000';
+                            geometryObj = {'coordinates': kmPileCoordinates[count], 'type': 'Point'};
+                            propertiesObj = {'name': mPileName,'flag':1};
+                            count++;
+                        //}
+                        featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
+                        featuresArray.push(featureObj);
+
                     }
-                    featureObj = {'geometry': geometryObj, 'type': 'Feature', 'properties': propertiesObj};
-                    featuresArray.push(featureObj);
                 }
             }
+            returnFeatureArr.push(featuresArray);
         }
-        return featuresArray;
+        return returnFeatureArr;
     };
     window.zhix = function readZhixKml() {
         featuresArray=[];
@@ -30998,37 +31033,43 @@ module.exports = function fileBar(context) {
         if (d3.event) d3.event.preventDefault();
         featuresArray = window.single();
         /*获取所有线要素的坐标值，进行遍历，找出数据的边框范围*/
-        var allCoordinates=[];
-        for (var i=0;i<pilegj.features.length;i++){
-            if(pilegj.features[i].geometry.type === 'LineString'){
-                for(var j = 0;j<pilegj.features[i].geometry.coordinates.length;j++){
-                    allCoordinates.push(pilegj.features[i].geometry.coordinates[j]);
+        var content=[];
+        for (var z=0;z<featureCollection.length;z++){
+            var allCoordinates=[];
+            for (var i=0;i<featureCollection[z].features.length;i++){
+                if(featureCollection[z].features[i].geometry.type === 'LineString'){
+                    for(var j = 0;j<featureCollection[z].features[i].geometry.coordinates.length;j++){
+                        allCoordinates.push(featureCollection[z].features[i].geometry.coordinates[j]);
+                    }
                 }
             }
-        }
-        var maxLat = allCoordinates[0][1];
-        var minLat = allCoordinates[0][1];
-        var maxLon = allCoordinates[0][0];
-        var minLon = allCoordinates[0][0];
-        var extent = [];
-        for (var i=1;i<allCoordinates.length;i++){
-            if (allCoordinates[i][0]>maxLon){
-                maxLon = allCoordinates[i][0];
-            }else if(allCoordinates[i][0]<minLon){
-                minLon = allCoordinates[i][0];
+            var maxLat = allCoordinates[0][1];
+            var minLat = allCoordinates[0][1];
+            var maxLon = allCoordinates[0][0];
+            var minLon = allCoordinates[0][0];
+            var extent = [];
+            for (var i=1;i<allCoordinates.length;i++){
+                if (allCoordinates[i][0]>maxLon){
+                    maxLon = allCoordinates[i][0];
+                }else if(allCoordinates[i][0]<minLon){
+                    minLon = allCoordinates[i][0];
+                }
+                if (allCoordinates[i][1]>maxLat){
+                    maxLat = allCoordinates[i][1];
+                }else if(allCoordinates[i][1]<minLat){
+                    minLat = allCoordinates[i][1];
+                }
             }
-            if (allCoordinates[i][1]>maxLat){
-                maxLat = allCoordinates[i][1];
-            }else if(allCoordinates[i][1]<minLat){
-                minLat = allCoordinates[i][1];
-            }
+            extent.push(minLon,minLat,maxLon,maxLat);
+            var geojsonFormat = {"features": featuresArray[z],"type": "FeatureCollection"};
+            allObj = {'extent':extent,'pile': geojsonFormat, 'kml': featureCollection[z]};
+            content.push(allObj);
         }
-        extent.push(minLon,minLat,maxLon,maxLat);
-        var geojsonFormat = {"features": featuresArray,"type": "FeatureCollection"};
-        allObj = {'extent':extent,'pile': geojsonFormat, 'kml': pilegj};
-        var content = JSON.stringify(allObj);
+        exportResult={'route':content};
+        var exportResult2 = JSON.stringify(exportResult);
+        //var exportResult2 = JSON.stringify(geojsonFormat);
         var meta = context.data.get('meta');
-        saveAs(new Blob([content], {
+        saveAs(new Blob([exportResult2], {
             type: 'text/plain;charset=utf-8'
         }), (meta && meta.name) || 'singleKml.json');
     }
@@ -31066,7 +31107,8 @@ module.exports = function fileBar(context) {
         extent.push(minLon,minLat,maxLon,maxLat);
         var geojsonFormat = {"features":featuresArray,"type": "FeatureCollection"};
         allObj = {'extent':extent,'pile':geojsonFormat,'kml':oriData};
-        var content = JSON.stringify(allObj);
+        //var content = JSON.stringify(allObj);
+        var content = JSON.stringify(geojsonFormat);
         var meta = context.data.get('meta');
         saveAs(new Blob([content], {
             type: 'text/plain;charset=utf-8'
